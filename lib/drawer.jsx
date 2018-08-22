@@ -5,15 +5,7 @@ import Hammer from "react-hammerjs";
 import isFunction from "1-liners/isFunction";
 import styles from "./styles";
 
-const {
-  bool,
-  number,
-  array,
-  object,
-  string,
-  func,
-  oneOfType
-} = PropTypes;
+const { bool, number, array, object, string, func, oneOfType } = PropTypes;
 
 export default class Drawer extends React.Component {
   static propTypes = {
@@ -70,7 +62,7 @@ export default class Drawer extends React.Component {
   }
 
   state = {
-    currentState: "CLOSED"
+    currentState: this.props.open ? "OPEN" : "CLOSED"
   };
 
   isState = s => s === this.state.currentState;
@@ -191,14 +183,23 @@ export default class Drawer extends React.Component {
     const { currentState, x } = this.state;
 
     return (
-      <Motion style={{ myProp: spring(Math.min(x + offset || 0, this.calculateWidth()), config) }}>
+      <Motion
+        style={{
+          myProp: spring(
+            this.isOpen()
+              ? Math.max(x + offset || 0, this.calculateWidth())
+              : Math.min(x + offset || 0, this.calculateWidth()),
+            config
+          )
+        }}
+      >
         {interpolated => {
           const { drawer, transform, overlay } = styles(
             interpolated.myProp,
             this.props
           );
 
-          let computedStyle = {...drawer, ...drawerStyle };
+          let computedStyle = { ...drawer, ...drawerStyle };
           if (interpolated.myProp > 0) computedStyle.display = "block";
           else computedStyle.display = "none";
 
@@ -215,14 +216,15 @@ export default class Drawer extends React.Component {
                     ? children(interpolated.myProp)
                     : children}
 
-                  {!this.isClosed() &&
+                  {!this.isClosed() && (
                     <Hammer
                       style={overlay}
                       className={overlayClassName}
                       onTap={this.onOverlayTap}
                     >
                       <span />
-                    </Hammer>}
+                    </Hammer>
+                  )}
                 </div>
               </div>
             </Hammer>
